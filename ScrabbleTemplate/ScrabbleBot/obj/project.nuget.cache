@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "2fMxV3/6NLEo47ZoU4bOOAsVF3eR03uFDvs3E0egWqnMIgGA+1wGmbCOD7PjpnoQ4u+cgkKFOqlfLg+qaWsu8Q==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\caspe\\Documents\\Skole\\Semester_4\\Functionel_Programering\\Project\\Scrabble\\ScrabbleTemplate\\ScrabbleBot\\ScrabbleBot.fsproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\caspe\\.nuget\\packages\\fparsec\\1.1.1\\fparsec.1.1.1.nupkg.sha512",
+    "C:\\Users\\caspe\\.nuget\\packages\\fsharp.core\\6.0.3\\fsharp.core.6.0.3.nupkg.sha512",
+    "C:\\Users\\caspe\\.nuget\\packages\\fsharp.quotations.evaluator\\2.1.0\\fsharp.quotations.evaluator.2.1.0.nupkg.sha512"
+  ],
+  "logs": []
+}

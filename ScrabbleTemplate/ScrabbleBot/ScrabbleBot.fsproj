@@ -21,6 +21,7 @@
   <ItemGroup>
     <PackageReference Include="FParsec" Version="1.1.1" />
     <PackageReference Update="FSharp.Core" Version="6.0.3" />
+    <PackageReference Include="FSharp.Quotations.Evaluator" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>
