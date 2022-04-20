@@ -29,3 +29,9 @@ module internal MultiSet
    let foldBack f (multiset : MultiSet<'b>) acc = Map.foldBack f multiset acc
 
    let ofList lst = List.fold(fun acc element -> addSingle element acc) empty lst
+   let toList (s:MultiSet<'a>) : 'a list = fold (fun acc key value -> acc @ (List.init (int32 value) (fun _ -> key))) List.empty s
+   let map f (s:MultiSet<'a>) : MultiSet<'b> = fold (fun acc key value -> add (f key) value acc) empty s
+   let union (s1:MultiSet<'a>) (s2:MultiSet<'a>) = fold (fun acc key value -> if contains key acc && numItems key acc > value then acc else Map.add key value acc) s2 s1
+   let sum (s1:MultiSet<'a>) (s2:MultiSet<'a>) = fold (fun acc key value -> add key value acc) s2 s1
+   let subtract (s1:MultiSet<'a>) (s2:MultiSet<'a>) = fold (fun acc key value -> remove key value acc) s1 s2
+   let intersection (s1:MultiSet<'a>) (s2:MultiSet<'a>) = fold (fun acc key value -> if contains key acc && numItems key acc > value then Map.add key value acc elif contains key acc && numItems key acc < value then Map.add key (numItems key acc) acc else acc) s2 s1
