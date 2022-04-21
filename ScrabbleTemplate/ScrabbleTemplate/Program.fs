@@ -1,6 +1,8 @@
 ﻿// Learn more about F# at http://fsharp.org
 
 open System
+open System.Collections.Generic
+open ScrabbleUtil
 
 let time f =
     let start = System.DateTime.Now
@@ -52,7 +54,7 @@ let main argv =
         None
 
     // Uncomment this line to call your client
-    let players    = [("Worderine", worderine.Scrabble.startGame)]
+    let players    = [("Worderine", ScrabbleUtil.Dictionary.mkDict words dictAPI, worderine.Scrabble.startGame)]
     let (dictionary, time) =
         time (fun () -> ScrabbleUtil.Dictionary.mkDict words dictAPI)
 
