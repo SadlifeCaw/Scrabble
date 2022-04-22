@@ -50,15 +50,15 @@ let main argv =
 
     let dictAPI =
         // Uncomment if you have implemented a dictionary. last element None if you have not implemented a GADDAG
-        Some (Dictionary.empty, Dictionary.insert, Dictionary.step, None) 
-        None
+        Some (Dictionary.Dictionary.empty, Dictionary.Dictionary.insert, Dictionary.Dictionary.step, None) 
+        // None
 
     // Uncomment this line to call your client
-    let players    = [("Worderine", ScrabbleUtil.Dictionary.mkDict words dictAPI, worderine.Scrabble.startGame)]
+    //let players    = [("Worderine", ScrabbleUtil.Dictionary.mkDict words dictAPI, worderine.Scrabble.startGame)]
     let (dictionary, time) =
         time (fun () -> ScrabbleUtil.Dictionary.mkDict words dictAPI)
 
-    //let players = spawnMultiples "OxyphenButazone" dictionary Oxyphenbutazone.Scrabble.startGame 4
+    let players = spawnMultiples "Worderine" dictionary worderine.Scrabble.startGame 1
 
 
     do ScrabbleServer.Comm.startGame 
