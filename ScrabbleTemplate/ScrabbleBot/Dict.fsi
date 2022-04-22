@@ -1,4 +1,4 @@
-module internal Dictionary
+module Dictionary
     type Dictionary = Node of (Map<char, Dictionary>*bool)
     
     val empty : unit -> Dictionary
