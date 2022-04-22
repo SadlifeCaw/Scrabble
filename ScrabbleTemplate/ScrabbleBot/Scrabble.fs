@@ -45,14 +45,22 @@ module State =
         board         : Parser.board
         dict          : ScrabbleUtil.Dictionary.Dict
         playerNumber  : uint32
+        playerTurn    : uint32
+        numPlayers    : uint32
         hand          : MultiSet.MultiSet<uint32>
     }
 
-    let mkState b d pn h = {board = b; dict = d;  playerNumber = pn; hand = h }
-
+    let mkState b d pn pt np h = {board = b
+                                  dict = d
+                                  playerNumber = pn
+                                  playerTurn = pt
+                                  numPlayers = np
+                                  hand = h }
     let board st         = st.board
     let dict st          = st.dict
     let playerNumber st  = st.playerNumber
+    let playerTurn st  = st.playerTurn
+    let numberOfPlayers st  = st.numPlayers
     let hand st          = st.hand
 
 module Scrabble =
@@ -118,5 +126,5 @@ module Scrabble =
                   
         let handSet = List.fold (fun acc (x, k) -> MultiSet.add x k acc) MultiSet.empty hand
 
-        fun () -> playGame cstream tiles (State.mkState board dict playerNumber handSet)
+        fun () -> playGame cstream tiles (State.mkState board dict playerNumber playerTurn numPlayers handSet)
         
