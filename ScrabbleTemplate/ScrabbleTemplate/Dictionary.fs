@@ -22,6 +22,6 @@ module internal Dictionary =
         aux dict (List.ofSeq s)
     
     let step (c: char) (Node(child, _)) =
-    match Map.tryFind c child with
-    | None -> None
-    | Some (Node(child, word)) -> Some (word, Node(child, word))
+        match Map.tryFind c child with
+        | None -> None
+        | Some (Node(child, word)) -> Some (word, Node(child, word))

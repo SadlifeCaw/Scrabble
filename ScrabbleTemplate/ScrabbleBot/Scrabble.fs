@@ -62,17 +62,35 @@ module State =
     let playerTurn st  = st.playerTurn
     let numberOfPlayers st  = st.numPlayers
     let hand st          = st.hand
+    
+    // Change current turn to next player
+    // Just pick the next ID in line. Overflow back to 0.
+    let changeTurn st =
+        st.playerTurn =
+            if st.playerTurn = st.numPlayers then 0u
+            else st.playerTurn + 1u
+        st
 
 module Scrabble =
     open System.Threading
-
     let playGame cstream pieces (st : State.state) =
 
         let rec aux (st : State.state) =
+            //debug messages for seeing if state is properly updated
+            
+            printfn "Number of players: %u" st.numPlayers
+            printfn "Current player ID: %u" st.playerTurn
+            printfn "Your player ID: %u" st.playerNumber  
+          
+            if st.playerTurn = st.playerNumber
+                then printfn "It is your turn"
+                else printfn "It is not your turn"
+            
             Print.printHand pieces (State.hand st)
 
             // remove the force print when you move on from manual input (or when you have learnt the format)
             forcePrint "Input move (format '(<x-coordinate> <y-coordinate> <piece id><character><point-value> )*', note the absence of space between the last inputs)\n\n"
+                    
             let input =  System.Console.ReadLine()
             let move = RegEx.parseMove input
 
@@ -85,14 +103,32 @@ module Scrabble =
             match msg with
             | RCM (CMPlaySuccess(ms, points, newPieces)) ->
                 (* Successful play by you. Update your state (remove old tiles, add the new ones, change turn, etc) *)
-                let st' = st // This state needs to be updated
+                
+                // VI har lige lagt et ord på boardet, det betyder:
+                // fjern tiles vi lige har brugt fra vores hånd
+                // tilføj nye tiles til vores hånd
+                // ændr current player
+                
+                let st' = State.changeTurn st
+                
                 aux st'
             | RCM (CMPlayed (pid, ms, points)) ->
                 (* Successful play by other player. Update your state *)
-                let st' = st // This state needs to be updated
+                
+                // En anden spiller har lagt et ord ned. Det betyder at vi nu skal opdatere:
+                // hvilke ord der er på boardet
+                // ændr current player
+                
+                let st' = State.changeTurn st
+                
                 aux st'
             | RCM (CMPlayFailed (pid, ms)) ->
                 (* Failed play. Update your state *)
+                
+                // Vi har prøvet at lægge et ulovligt ord. Det betyder at vi nu skal opdatere;
+                // ved faktisk ikke lige hvad reglerne er
+                // betyder det at vi må prøve igen, eller mister man bare sin tur??
+                
                 let st' = st // This state needs to be updated
                 aux st'
             | RCM (CMGameOver _) -> ()

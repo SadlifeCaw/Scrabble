@@ -58,7 +58,7 @@ let main argv =
     let (dictionary, time) =
         time (fun () -> ScrabbleUtil.Dictionary.mkDict words dictAPI)
 
-    let players = spawnMultiples "Worderine" dictionary worderine.Scrabble.startGame 1
+    let players = spawnMultiples "Worderine" dictionary worderine.Scrabble.startGame 4
 
 
     do ScrabbleServer.Comm.startGame 
