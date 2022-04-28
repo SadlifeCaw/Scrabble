@@ -108,9 +108,9 @@ module Scrabble =
             match msg with
             | RCM (CMPlaySuccess(ms, points, newPieces)) ->
                 (* Successful play by you. Update your state (remove old tiles, add the new ones, change turn, etc) *)
-                // TODO 1. extract id (unt32) from ns, and remove it from the hand
+                // TODO 1. extract id (unt32) from ms, and remove it from the hand
                 // TODO 2. Add new pieces (id of the tile, amount of tiles id has been drawn) to the current hand by adding the ids to the hand
-                // TODO 3. Add all coordinates and pieces from ns to st.piecesOnBoard
+                // TODO 3. Add all coordinates and pieces from ms to st.piecesOnBoard
                 // VI har lige lagt et ord på boardet, det betyder:
                 // fjern tiles vi lige har brugt fra vores hånd
                 // tilføj nye tiles til vores hånd
