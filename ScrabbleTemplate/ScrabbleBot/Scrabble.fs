@@ -1,5 +1,6 @@
 ﻿namespace worderine
 
+open Eval
 open ScrabbleUtil
 open ScrabbleUtil.ServerCommunication
 
@@ -7,8 +8,20 @@ open System.IO
 
 open ScrabbleUtil.DebugPrint
 
-// The RegEx module is only used to parse human input. It is not used for the final product.
+module State =
+    type coord = int * int
+    type tile = char * int
+    type place = uint * tile
+    type move = (coord * place) list
+    
+    //DELETE THIS: Make sure to keep your state loocalised in this module. It makes your life a whole lot easier.
+    //DELETE THIS: Currently, it only keeps track of your hand, your player number, your board, and your dictionary,
+    //but it could, potentially, keep track og other useful information such as numbers of players, player turn etc.
+    type state = {
+        
+    }
 
+// The RegEx module is only used to parse human input. It is not used for the final product.
 module RegEx =
     open System.Text.RegularExpressions
 
