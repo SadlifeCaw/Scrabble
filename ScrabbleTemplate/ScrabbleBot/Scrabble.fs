@@ -8,19 +8,6 @@ open System.IO
 
 open ScrabbleUtil.DebugPrint
 
-module State =
-    type coord = int * int
-    type tile = char * int
-    type place = uint * tile
-    type move = (coord * place) list
-    
-    //DELETE THIS: Make sure to keep your state loocalised in this module. It makes your life a whole lot easier.
-    //DELETE THIS: Currently, it only keeps track of your hand, your player number, your board, and your dictionary,
-    //but it could, potentially, keep track og other useful information such as numbers of players, player turn etc.
-    type state = {
-        
-    }
-
 // The RegEx module is only used to parse human input. It is not used for the final product.
 module RegEx =
     open System.Text.RegularExpressions
@@ -53,6 +40,10 @@ module State =
     // Currently, it only keeps track of your hand, your player numer, your board, and your dictionary,
     // but it could, potentially, keep track of other useful
     // information, such as number of players, player turn, etc.
+    type coord = int * int
+    type tile = char * int
+    type place = uint * tile
+    type move = (coord * place) list
 
     type state = {
         board         : Parser.board
@@ -106,7 +97,8 @@ module Scrabble =
                     
             let input =  System.Console.ReadLine()
             let move = RegEx.parseMove input
-
+            // TODO 4. Make a new file - a bot which autonates moves. Give it pieces, st.piecesOnBoard, st.hand and returns a move
+            
             debugPrint (sprintf "Player %d -> Server:\n%A\n" (State.playerNumber st) move) // keep the debug lines. They are useful.
             send cstream (SMPlay move)
 
@@ -116,7 +108,9 @@ module Scrabble =
             match msg with
             | RCM (CMPlaySuccess(ms, points, newPieces)) ->
                 (* Successful play by you. Update your state (remove old tiles, add the new ones, change turn, etc) *)
-                
+                // TODO 1. extract id (unt32) from ns, and remove it from the hand
+                // TODO 2. Add new pieces (id of the tile, amount of tiles id has been drawn) to the current hand by adding the ids to the hand
+                // TODO 3. Add all coordinates and pieces from ns to st.piecesOnBoard
                 // VI har lige lagt et ord på boardet, det betyder:
                 // fjern tiles vi lige har brugt fra vores hånd
                 // tilføj nye tiles til vores hånd
