@@ -1,5 +1,6 @@
 ﻿namespace worderine
 
+open System
 open Eval
 open ScrabbleUtil
 open ScrabbleUtil.ServerCommunication
@@ -42,17 +43,20 @@ module State =
     // information, such as number of players, player turn, etc.
     type coord = int * int
     type tile = char * int
-    type place = uint * tile
-    type move = (coord * place) list
+    type piece = uint * tile
+    type move = (coord * piece) list
 
     type state = {
         board         : Parser.board
+        //piecesOnBoard : Map<coord, piece>
         dict          : ScrabbleUtil.Dictionary.Dict
         playerNumber  : uint32
         playerTurn    : uint32
         numPlayers    : uint32
         hand          : MultiSet.MultiSet<uint32>
     }
+    
+    //TODO RemovePiecesFromHand
 
     let mkState b d pn pt np h = {board = b
                                   dict = d
@@ -66,6 +70,13 @@ module State =
     let playerTurn st  = st.playerTurn
     let numberOfPlayers st  = st.numPlayers
     let hand st          = st.hand
+    
+    // List.fold (fun acc ((x-coord,y-coord),(pieceid,(char,value))) -> id :: acc) []
+    let piecesPutOnBoard ms = ms |> List.fold (fun acc (_,(id,_)) -> id :: acc) []
+    
+    let addPlayerPoints points = NotImplementedException //Add points comes form RCM
+    let removePiecesFromHand list = NotImplementedException //takes piecesPutOnBoard and remove it from hand
+    let addNewPiecesToHand list = NotImplementedException //takes newPieces from RCM and adds it to state
     
     // Change current turn to next player
     // Just pick the next ID in line. Overflow back to 0.
@@ -82,9 +93,9 @@ module Scrabble =
         let rec aux (st : State.state) =
             //debug messages for seeing if state is properly updated
             
-            printfn "Number of players: %u" st.numPlayers
-            printfn "Current player ID: %u" st.playerTurn
-            printfn "Your player ID: %u" st.playerNumber  
+            //printfn "Number of players: %u" st.numPlayers
+            //printfn "Current player ID: %u" st.playerTurn
+            //printfn "Your player ID: %u" st.playerNumber  
           
             if st.playerTurn = st.playerNumber
                 then printfn "It is your turn"
