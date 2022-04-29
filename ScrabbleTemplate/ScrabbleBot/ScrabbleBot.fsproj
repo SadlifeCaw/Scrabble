@@ -16,8 +16,6 @@
     <Compile Include="Parser.fs" />
     <Compile Include="Scrabble.fsi" />
     <Compile Include="Scrabble.fs" />
-    <Compile Include="Bot.fsi" />
-    <Compile Include="Bot.fs" />
   </ItemGroup>
 
   <ItemGroup>

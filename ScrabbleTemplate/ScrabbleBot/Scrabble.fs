@@ -79,8 +79,9 @@ module State =
     
     // List.fold (fun acc ((x-coord,y-coord),(pieceid,(char,value))) -> id :: acc) []
     let piecesPutOnBoard ms = ms |> List.fold (fun acc (_,(id,_)) -> id :: acc) []
-    let addPlayerPoints (st : state) (newPoints : int32) = points st + newPoints
+    let addPlayerPoints st newPoints = points st + newPoints
     let removePiecesFromHand ms st =
+        // ms : (coord, (id, (char, value)))
         let newHand = ms |> List.fold (fun acc (_,(id,(_,_))) -> MultiSet.removeSingle id acc) (hand st)
         newHand
     let addNewPiecesToHand list oldHand =
@@ -88,17 +89,16 @@ module State =
         newHand
     
     //TODO: idea: make a single UPDATE-STATE function instead of having many different methods
-    let putPiecesOnBoard (st : state) ms =
+    let putPiecesOnBoard ms st =
         // Add every piece in the given multiset to the piecesOnBoard
         let newBoard = ms |> List.fold (fun acc (coord,(id,(l,v))) -> Map.add coord (id, (l,v)) acc) (piecesOnBoard st)
         newBoard
         
-    let changePlayer st =
-        if st.playerTurn = st.numPlayers then 0u
-        else playerTurn st + 1u
-        
     // Change current turn to next player
     // Just pick the next ID in line. Overflow back to 0.
+    let changePlayer st =
+        if st.playerTurn = st.numPlayers then 1u
+        else playerTurn st + 1u
 
 module Scrabble =
     open System.Threading
@@ -107,9 +107,9 @@ module Scrabble =
         let rec aux (st : State.state) =
             //debug messages for seeing if state is properly updated
             
-            //printfn "Number of players: %u" st.numPlayers
-            //printfn "Current player ID: %u" st.playerTurn
-            //printfn "Your player ID: %u" st.playerNumber  
+            printfn "Number of players: %u" st.numPlayers
+            printfn "Current player ID: %u" st.playerTurn
+            printfn "Your player ID: %u" st.playerNumber  
           
             if st.playerTurn = st.playerNumber
                 then printfn "It is your turn"
@@ -143,11 +143,12 @@ module Scrabble =
                 
                 let newPlayer = State.changePlayer st
                 let newPoints = State.addPlayerPoints st points
+                let newBoard = State.putPiecesOnBoard ms st
                 
                 let removeHand  = State.removePiecesFromHand ms st
                 let bestHand    = State.addNewPiecesToHand   newPieces removeHand
                 
-                let st' = State.mkState st.board st.piecesOnBoard st.dict newPlayer st.playerNumber st.numPlayers bestHand newPoints
+                let st' = State.mkState st.board newBoard st.dict newPlayer st.playerNumber st.numPlayers bestHand newPoints
                 
                 aux st'
             | RCM (CMPlayed (pid, ms, points)) ->
@@ -159,7 +160,7 @@ module Scrabble =
                 // ændr personens der lige har spillets point
                 
                 let newPlayer = State.changePlayer st
-                let newBoard = State.putPiecesOnBoard st ms
+                let newBoard = State.putPiecesOnBoard ms st
                 
                 let st' = State.mkState st.board newBoard st.dict newPlayer st.playerNumber st.numPlayers st.hand st.points
                 
