@@ -48,7 +48,7 @@ module State =
 
     type state = {
         board         : Parser.board
-        //piecesOnBoard : Map<coord, piece>
+        piecesOnBoard : Map<coord, piece>
         dict          : ScrabbleUtil.Dictionary.Dict
         playerNumber  : uint32
         playerTurn    : uint32
@@ -59,15 +59,17 @@ module State =
     
     //TODO RemovePiecesFromHand
 
-    let mkState b d pn pt np h p = {board = b
-                                    dict = d
-                                    playerNumber = pn
-                                    playerTurn = pt
-                                    numPlayers = np
-                                    hand = h
-                                    points = p
-                                    }
+    let mkState b pob d pn pt np h p = {board = b
+                                        piecesOnBoard = pob
+                                        dict = d
+                                        playerNumber = pn
+                                        playerTurn = pt
+                                        numPlayers = np
+                                        hand = h
+                                        points = p
+                                        }
     let board st         = st.board
+    let piecesOnBoard st = st.piecesOnBoard
     let dict st          = st.dict
     let playerNumber st  = st.playerNumber
     let playerTurn st  = st.playerTurn
@@ -78,14 +80,18 @@ module State =
     // List.fold (fun acc ((x-coord,y-coord),(pieceid,(char,value))) -> id :: acc) []
     let piecesPutOnBoard ms = ms |> List.fold (fun acc (_,(id,_)) -> id :: acc) []
     let addPlayerPoints (st : state) (newPoints : int32) = points st + newPoints
-    let removePiecesFromHand (hand : MultiSet.MultiSet<uint32>) pieces = NotImplementedException //takes piecesPutOnBoard and remove it from hand
-    let addNewPiecesToHand (hand : MultiSet.MultiSet<uint32>) pieces = NotImplementedException //takes newPieces from RCM and adds it to state
+    let removePiecesFromHand ms st =
+        let newHand = ms |> List.fold (fun acc (_,(id,(_,_))) -> MultiSet.removeSingle id acc) (hand st)
+        newHand
+    let addNewPiecesToHand list oldHand =
+        let newHand = list |> List.fold (fun acc (id,n) -> MultiSet.add id n acc) oldHand
+        newHand
     
+    //TODO: idea: make a single UPDATE-STATE function instead of having many different methods
     let putPiecesOnBoard (st : state) ms =
-        // Add every piece in the multiset to the board
-        let newBoard = ms |> List.fold (fun acc (_,(_,(id,_))) -> id :: acc) []
-        
-        st
+        // Add every piece in the given multiset to the piecesOnBoard
+        let newBoard = ms |> List.fold (fun acc (coord,(id,(l,v))) -> Map.add coord (id, (l,v)) acc) (piecesOnBoard st)
+        newBoard
         
     let changePlayer st =
         if st.playerTurn = st.numPlayers then 0u
@@ -138,10 +144,10 @@ module Scrabble =
                 let newPlayer = State.changePlayer st
                 let newPoints = State.addPlayerPoints st points
                 
-                //let removeHand  = State.removePiecesFromHand (State.hand st) "temp"
-                //let bestestHand = State.addNewPiecesToHand   removeHand "temp"
+                let removeHand  = State.removePiecesFromHand ms st
+                let bestHand    = State.addNewPiecesToHand   newPieces removeHand
                 
-                let st' = State.mkState st.board st.dict newPlayer st.playerNumber st.numPlayers st.hand newPoints
+                let st' = State.mkState st.board st.piecesOnBoard st.dict newPlayer st.playerNumber st.numPlayers bestHand newPoints
                 
                 aux st'
             | RCM (CMPlayed (pid, ms, points)) ->
@@ -153,8 +159,9 @@ module Scrabble =
                 // ændr personens der lige har spillets point
                 
                 let newPlayer = State.changePlayer st
+                let newBoard = State.putPiecesOnBoard st ms
                 
-                let st' = State.mkState st.board st.dict newPlayer st.playerNumber st.numPlayers st.hand st.points
+                let st' = State.mkState st.board newBoard st.dict newPlayer st.playerNumber st.numPlayers st.hand st.points
                 
                 aux st'
             | RCM (CMPlayFailed (pid, ms)) ->
@@ -197,5 +204,5 @@ module Scrabble =
                   
         let handSet = List.fold (fun acc (x, k) -> MultiSet.add x k acc) MultiSet.empty hand
 
-        fun () -> playGame cstream tiles (State.mkState board dict playerNumber playerTurn numPlayers handSet 0)
+        fun () -> playGame cstream tiles (State.mkState board Map.empty dict playerNumber playerTurn numPlayers handSet 0)
         
