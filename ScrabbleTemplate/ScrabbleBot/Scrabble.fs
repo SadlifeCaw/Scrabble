@@ -77,11 +77,20 @@ module State =
     
     // List.fold (fun acc ((x-coord,y-coord),(pieceid,(char,value))) -> id :: acc) []
     let piecesPutOnBoard ms = ms |> List.fold (fun acc (_,(id,_)) -> id :: acc) []
+    let addPlayerPoints (st : state) (newPoints : int32) = points st + newPoints
+    let removePiecesFromHand (hand : MultiSet.MultiSet<uint32>) pieces = NotImplementedException //takes piecesPutOnBoard and remove it from hand
+    let addNewPiecesToHand (hand : MultiSet.MultiSet<uint32>) pieces = NotImplementedException //takes newPieces from RCM and adds it to state
     
-    let addPlayerPoints points = NotImplementedException //Add points comes form RCM
-    let removePiecesFromHand list = NotImplementedException //takes piecesPutOnBoard and remove it from hand
-    let addNewPiecesToHand list = NotImplementedException //takes newPieces from RCM and adds it to state
-    
+    let putPiecesOnBoard (st : state) ms =
+        // Add every piece in the multiset to the board
+        let newBoard = ms |> List.fold (fun acc (_,(_,(id,_))) -> id :: acc) []
+        
+        st
+        
+    let changePlayer st =
+        if st.playerTurn = st.numPlayers then 0u
+        else playerTurn st + 1u
+        
     // Change current turn to next player
     // Just pick the next ID in line. Overflow back to 0.
 
@@ -126,11 +135,11 @@ module Scrabble =
                 // tilføj nye tiles til vores hånd
                 // ændr current player
                 
-                let newPlayer =
-                    if st.playerTurn = st.numPlayers then 0u
-                    else State.playerTurn st + 1u
-           
-                let newPoints = State.points st + points
+                let newPlayer = State.changePlayer st
+                let newPoints = State.addPlayerPoints st points
+                
+                //let removeHand  = State.removePiecesFromHand (State.hand st) "temp"
+                //let bestestHand = State.addNewPiecesToHand   removeHand "temp"
                 
                 let st' = State.mkState st.board st.dict newPlayer st.playerNumber st.numPlayers st.hand newPoints
                 
@@ -143,9 +152,7 @@ module Scrabble =
                 // ændr current player
                 // ændr personens der lige har spillets point
                 
-                let newPlayer =
-                    if st.playerTurn = st.numPlayers then 0u
-                    else st.playerTurn + 1u
+                let newPlayer = State.changePlayer st
                 
                 let st' = State.mkState st.board st.dict newPlayer st.playerNumber st.numPlayers st.hand st.points
                 
@@ -190,5 +197,5 @@ module Scrabble =
                   
         let handSet = List.fold (fun acc (x, k) -> MultiSet.add x k acc) MultiSet.empty hand
 
-        fun () -> playGame cstream tiles (State.mkState board dict playerNumber playerTurn numPlayers handSet 0u)
+        fun () -> playGame cstream tiles (State.mkState board dict playerNumber playerTurn numPlayers handSet 0)
         
