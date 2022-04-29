@@ -54,22 +54,26 @@ module State =
         playerTurn    : uint32
         numPlayers    : uint32
         hand          : MultiSet.MultiSet<uint32>
+        points        : int32 //points can be negative, must be signed
     }
     
     //TODO RemovePiecesFromHand
 
-    let mkState b d pn pt np h = {board = b
-                                  dict = d
-                                  playerNumber = pn
-                                  playerTurn = pt
-                                  numPlayers = np
-                                  hand = h }
+    let mkState b d pn pt np h p = {board = b
+                                    dict = d
+                                    playerNumber = pn
+                                    playerTurn = pt
+                                    numPlayers = np
+                                    hand = h
+                                    points = p
+                                    }
     let board st         = st.board
     let dict st          = st.dict
     let playerNumber st  = st.playerNumber
     let playerTurn st  = st.playerTurn
     let numberOfPlayers st  = st.numPlayers
     let hand st          = st.hand
+    let points st = st.points
     
     // List.fold (fun acc ((x-coord,y-coord),(pieceid,(char,value))) -> id :: acc) []
     let piecesPutOnBoard ms = ms |> List.fold (fun acc (_,(id,_)) -> id :: acc) []
@@ -80,11 +84,6 @@ module State =
     
     // Change current turn to next player
     // Just pick the next ID in line. Overflow back to 0.
-    let changeTurn st =
-        st.playerTurn =
-            if st.playerTurn = st.numPlayers then 0u
-            else st.playerTurn + 1u
-        st
 
 module Scrabble =
     open System.Threading
@@ -127,7 +126,13 @@ module Scrabble =
                 // tilføj nye tiles til vores hånd
                 // ændr current player
                 
-                let st' = State.changeTurn st
+                let newPlayer =
+                    if st.playerTurn = st.numPlayers then 0u
+                    else State.playerTurn st + 1u
+           
+                let newPoints = State.points st + points
+                
+                let st' = State.mkState st.board st.dict newPlayer st.playerNumber st.numPlayers st.hand newPoints
                 
                 aux st'
             | RCM (CMPlayed (pid, ms, points)) ->
@@ -136,8 +141,13 @@ module Scrabble =
                 // En anden spiller har lagt et ord ned. Det betyder at vi nu skal opdatere:
                 // hvilke ord der er på boardet
                 // ændr current player
+                // ændr personens der lige har spillets point
                 
-                let st' = State.changeTurn st
+                let newPlayer =
+                    if st.playerTurn = st.numPlayers then 0u
+                    else st.playerTurn + 1u
+                
+                let st' = State.mkState st.board st.dict newPlayer st.playerNumber st.numPlayers st.hand st.points
                 
                 aux st'
             | RCM (CMPlayFailed (pid, ms)) ->
@@ -180,5 +190,5 @@ module Scrabble =
                   
         let handSet = List.fold (fun acc (x, k) -> MultiSet.add x k acc) MultiSet.empty hand
 
-        fun () -> playGame cstream tiles (State.mkState board dict playerNumber playerTurn numPlayers handSet)
+        fun () -> playGame cstream tiles (State.mkState board dict playerNumber playerTurn numPlayers handSet 0u)
         
