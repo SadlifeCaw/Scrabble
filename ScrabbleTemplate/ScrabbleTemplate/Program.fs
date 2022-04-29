@@ -50,7 +50,7 @@ let main argv =
 
     let dictAPI =
         // Uncomment if you have implemented a dictionary. last element None if you have not implemented a GADDAG
-        Some (Dictionary.Dictionary.empty, Dictionary.Dictionary.insert, Dictionary.Dictionary.step, None) 
+        Some (Dictionary.Dictionary.empty, Dictionary.Dictionary.insert, Dictionary.Dictionary.step, Some(Dictionary.Dictionary.reverse)) 
         // None
 
     // Uncomment this line to call your client

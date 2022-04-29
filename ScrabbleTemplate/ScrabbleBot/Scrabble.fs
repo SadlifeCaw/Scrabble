@@ -190,5 +190,5 @@ module Scrabble =
                   
         let handSet = List.fold (fun acc (x, k) -> MultiSet.add x k acc) MultiSet.empty hand
 
-        fun () -> playGame cstream tiles (State.mkState board dict playerNumber playerTurn numPlayers handSet 0u)
+        fun () -> playGame cstream tiles (State.mkState board dict playerNumber playerTurn numPlayers handSet 0)
         
