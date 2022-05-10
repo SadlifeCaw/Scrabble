@@ -82,11 +82,11 @@ module State =
     let addPoints pid points st =
         let oldPoints = playerPoints st |> Map.tryFind pid
         
-        // If the pid is not already added to the map, assume them to have 0 points
+        // If the pid is not already added to the map, assume them to have 0 points (plus the ones to be added)
         let newPoints =
             match oldPoints with
             | Some s -> s + points
-            | None -> 0
+            | None -> points
 
         playerPoints st |> Map.add pid newPoints
         
