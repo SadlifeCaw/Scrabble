@@ -7,7 +7,8 @@ module internal Dictionary =
     
     let empty (u:unit) = Node (Map.empty, false)
 
-    let insertToDict (s: char list) dict : Dictionary =
+    let insert (s: String) dict : Dictionary =
+        let cl = Seq.toList s
         let rec aux (Node (m, b)) = function
             | [] -> Node (m, true)
             | c::tail ->
@@ -18,10 +19,13 @@ module internal Dictionary =
                 | Some child ->
                     let nchild = aux child tail
                     Node (Map.add c nchild m, b)            
-        aux dict s
+        aux dict cl
+    
+    (*
+    IF WE WANT A GADACT THEN:
     
     let esc = '#'
-
+    
     let gadact (s: string) =
         let rec aux acc pre = function
             |[] -> pre::acc
@@ -29,12 +33,10 @@ module internal Dictionary =
         aux [] [esc] (List.ofSeq s)
     
     let insert (s : string) (dict : Dictionary) : Dictionary = gadact s |> List.fold (fun acc li -> insertToDict li acc) dict
-         
+     *)
     let step (c: char) (Node(child, _)) =
         match Map.tryFind c child with
         | None -> None
         | Some (Node(child, word)) -> Some (word, Node(child, word))
-        
-    let reverse dict = step esc dict
     
     //TODO: MAKE THIS A TRIE INSTEAD

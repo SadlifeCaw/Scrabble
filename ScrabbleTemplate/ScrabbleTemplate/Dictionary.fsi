@@ -8,4 +8,4 @@ module internal Dictionary =
     
     val step : char -> Dictionary -> (bool * Dictionary) option
     
-    val reverse : Dictionary -> (bool * Dictionary) option
+    //val reverse : Dictionary -> (bool * Dictionary) option
