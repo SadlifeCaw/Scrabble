@@ -50,6 +50,7 @@ let main argv =
 
     let dictAPI =
         // Uncomment if you have implemented a dictionary. last element None if you have not implemented a GADDAG
+        // TODO: MAKE THIS A TRIE
         Some (Dictionary.Dictionary.empty, Dictionary.Dictionary.insert, Dictionary.Dictionary.step, Some(Dictionary.Dictionary.reverse)) 
         // None
 
@@ -58,7 +59,7 @@ let main argv =
     let (dictionary, time) =
         time (fun () -> ScrabbleUtil.Dictionary.mkDict words dictAPI)
 
-    let players = spawnMultiples "Worderine" dictionary worderine.Scrabble.startGame 4
+    let players = spawnMultiples "Worderine" dictionary worderine.Scrabble.startGame 1
 
 
     do ScrabbleServer.Comm.startGame 

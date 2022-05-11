@@ -21,6 +21,7 @@ module internal Dictionary =
         aux dict s
     
     let esc = '#'
+
     let gadact (s: string) =
         let rec aux acc pre = function
             |[] -> pre::acc
@@ -35,3 +36,5 @@ module internal Dictionary =
         | Some (Node(child, word)) -> Some (word, Node(child, word))
         
     let reverse dict = step esc dict
+    
+    //TODO: MAKE THIS A TRIE INSTEAD
