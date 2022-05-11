@@ -146,8 +146,8 @@ module State =
         match Map.tryFind coord st.piecesOnBoard with
         | Some c -> // Char already placed on board - step into dictionary and proceed from next coord
             match Dictionary.step c dict with
-            | Some (wordFinised, dict') ->
-                let newBestMove = if wordFinised then chooseBest current best else best
+            | Some (wordFinished, dict') ->
+                let newBestMove = if wordFinished then chooseBest current best else best
                 findWordFromCoord st (nextCoord coord dir) dir dict' hand current newBestMove
             | None -> best 
         | None -> // Square is empty - proceed by folding over hand and trying to form word with every tile on hand
@@ -190,19 +190,6 @@ module State =
             // And trying to form words in both directions
             // i.e. Map.fold (fun acc coord _ -> something) [] st.piecesOnBoard
             findWordFromCoord st (0,0) Right st.dict st.hand [] []
-    
-    
-    (*
-    Set.fold (fun acc (c, v) ->
-                    match Dictionary.step c st.dict with
-                    |None -> acc
-                    |Some (b, dict) ->
-                             match b with
-                             |true -> 
-                ) Set.empty
-    *)
-            
-        
 
 module Scrabble =
     open System.Threading
