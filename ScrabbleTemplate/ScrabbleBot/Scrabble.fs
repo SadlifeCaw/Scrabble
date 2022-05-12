@@ -155,7 +155,7 @@ module State =
         | Some c -> // Char already placed on board - step into dictionary and proceed from next coord
             match Dictionary.step c dict with
             | Some (wordFinished, dict') ->
-                let newBestMove = if wordFinished then chooseBest current best else best
+                let newBestMove = if wordFinished && not(st.piecesOnBoard.ContainsKey(nextCoord coord dir)) then chooseBest current best else best
                 findWordFromCoord st (nextCoord coord dir) dir dict' hand current newBestMove
             | None -> best 
         | None -> // Square is empty - proceed by folding over hand and trying to form word with every tile on hand
@@ -174,7 +174,10 @@ module State =
                         |None -> acc
                         |Some (wordFinished, dict'') ->                                
                             let newCurrent = (coord, (id, (c,v))) :: current
-                            let newBestMove = if wordFinished && not(st.piecesOnBoard.ContainsKey(nextCoord coord dir)) then chooseBest newCurrent acc else acc
+                            let newBestMove =
+                                if wordFinished && not(st.piecesOnBoard.ContainsKey(nextCoord coord dir))
+                                then chooseBest newCurrent acc
+                                else acc
                             let newHand = MultiSet.removeSingle id hand
                             
                             if wordFinished then (newBestMove) else findWordFromCoord st (nextCoord coord dir) dir dict'' newHand newCurrent newBestMove
