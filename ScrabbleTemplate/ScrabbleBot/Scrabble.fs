@@ -175,7 +175,6 @@ module Scrabble =
     let playGame cstream pieces (st : State.state) =
 
         let rec aux (st : State.state) =
-
             let move = State.findWord st
 
             let ids = st.hand |> MultiSet.fold (fun acc id _ -> id :: acc) []
