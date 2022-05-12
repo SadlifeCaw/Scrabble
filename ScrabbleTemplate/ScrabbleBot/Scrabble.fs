@@ -98,6 +98,7 @@ module State =
     let numberOfPlayers st  = st.numPlayers
     let hand st             = st.hand
     let playerPoints st     = st.playerPoints
+    let pieces st     = st.pieces
     
     // List.fold (fun acc ((x-coord,y-coord),(pieceid,(char,value))) -> id :: acc) []
     let piecesPutOnBoard ms = ms |> List.fold (fun acc (_,(id,_)) -> id :: acc) []
@@ -114,6 +115,8 @@ module State =
         
     // ms : (coord, (id, (char, value)))
     let removePiecesFromHand ms st = ms |> List.fold (fun acc (_,(id,(_,_))) -> MultiSet.removeSingle id acc) (hand st)
+    
+    //let printHand (w:word) (st:state) = w |> List.fold (fun acc (c,v) -> printfn "%A" c ) []
     let addNewPiecesToHand list oldHand = list |> List.fold (fun acc (id,n) -> MultiSet.add id n acc) oldHand
     
     //TODO: idea: make a single UPDATE-STATE function instead of having many different methods
@@ -129,7 +132,7 @@ module State =
         else playerTurn st + 1u
     
     let chooseBest word1 word2 : move =
-        if List.length word1 >= List.length word2
+        if List.length word1 > List.length word2
         then word1
         else word2
     
@@ -162,13 +165,17 @@ module State =
                 MultiSet.fold (fun best' id num ->
                     let set = Map.find id st.pieces
                     Set.fold (fun acc (c, v) ->
-                        match Dictionary.step c st.dict with
+                        match Dictionary.step c dict with
                         |None -> acc
-                        |Some (wordFinished, dict'') ->
-                            let newBestMove = if wordFinished then chooseBest current best else best
-                            let newHand = MultiSet.removeSingle id hand
+                        |Some (wordFinished, dict'') ->                                
                             let newCurrent = (coord, (id, (c,v))) :: current
-                            findWordFromCoord st (nextCoord coord dir) dir dict'' newHand newCurrent newBestMove              
+                            let newBestMove = if wordFinished then chooseBest newCurrent acc else acc
+                            let newHand = MultiSet.removeSingle id hand
+                            
+                            if wordFinished then (newBestMove) else findWordFromCoord st (nextCoord coord dir) dir dict'' newHand newCurrent newBestMove
+                            
+                            //findWordFromCoord st (nextCoord coord dir) dir dict'' newHand newCurrent newBestMove
+                               
                     ) best' set
                     // TODO: extract char from set by either folding over the set or doing something more trivial
                     // so fold over set
@@ -182,7 +189,8 @@ module State =
     
     let findWord st =
         if Map.isEmpty st.piecesOnBoard
-        then findWordFromCoord st (0,0) Right st.dict st.hand [] []
+        then 
+            findWordFromCoord st (0,0) Right st.dict st.hand [] []
         else
             // TODO: change this later
            // You have to decide from which tiles you will begin searching
@@ -198,28 +206,42 @@ module Scrabble =
 
         let rec aux (st : State.state) =
             //debug messages for seeing if state is properly updated
-            printfn "Number of players: %u" st.numPlayers
-            printfn "Current player ID: %u" st.playerTurn
-            printfn "Your player ID: %u" st.playerNumber  
-          
-            if st.playerTurn = st.playerNumber
-                then    
-                    printfn "It is your turn"
-                    Print.printHand pieces (State.hand st)
+//            printfn "Number of players: %u" st.numPlayers
+//            printfn "Current player ID: %u" st.playerTurn
+//            printfn "Your player ID: %u" st.playerNumber  
+//          
+//            printfn "It is your turn"
+            Print.printHand pieces (State.hand st)
+            
+            // remove the force print when you move on from manual input (or when you have learnt the format)
+            //forcePrint "Input move (format '(<x-coordinate> <y-coordinate> <piece id><character><point-value> )*', note the absence of space between the last inputs)\n\n"
+
+
+            //printf("LOOKING FOR MOVE")
+
+
+            let move = State.findWord st
+            // TODO 4. Make a new file - a bot which autonates moves. Give it pieces, st.piecesOnBoard, st.hand and returns a move
+            
+            printf("FOUND MOVE")
+            //State.printHand move st
+            
+            //List.fold (fun m::list -> printfn m) [] move
+
+            debugPrint (sprintf "Player %d -> Server:\n%A\n" (State.playerNumber st) move) // keep the debug lines. They are useful.
+            
+            let ids = st.hand |> MultiSet.fold (fun acc id n -> id :: acc) []
+            //List.fold (fun acc (id,n) -> MultiSet.add id n acc) oldHand
+            
+            if List.length move > 0
+                then send cstream (SMPlay move)
+                else
+                    send cstream (SMChange ids)
                     
-                    // remove the force print when you move on from manual input (or when you have learnt the format)
-                    forcePrint "Input move (format '(<x-coordinate> <y-coordinate> <piece id><character><point-value> )*', note the absence of space between the last inputs)\n\n"
-                            
-                    let input =  System.Console.ReadLine()
-                    let move = RegEx.parseMove input
-                    // TODO 4. Make a new file - a bot which autonates moves. Give it pieces, st.piecesOnBoard, st.hand and returns a move
-                    
-                    debugPrint (sprintf "Player %d -> Server:\n%A\n" (State.playerNumber st) move) // keep the debug lines. They are useful.
-                    send cstream (SMPlay move)
-                    debugPrint (sprintf "Player %d <- Server:\n%A\n" (State.playerNumber st) move) // keep the debug lines. They are useful.
-                    
-                    
-                else printfn "It is not your turn"
+                
+            debugPrint (sprintf "Player %d <- Server:\n%A\n" (State.playerNumber st) move) // keep the debug lines. They are useful.
+            
+                  
             
 
             let msg = recv cstream
@@ -275,6 +297,20 @@ module Scrabble =
                 
                 let st' = st // This state needs to be updated
                 aux st'
+            | RCM (CMChangeSuccess newPieces) ->
+                // we get new tiles!
+                
+             
+                
+                let removeHand = ids |> List.fold (fun acc id -> MultiSet.removeSingle id acc) st.hand
+                
+                let bestHand = State.addNewPiecesToHand newPieces removeHand
+                
+                let newPlayer = State.changePlayer st
+                let st' = State.mkState st.board st.piecesOnBoard st.dict newPlayer st.playerNumber st.numPlayers bestHand st.playerPoints pieces
+                
+                aux st'
+                
             | RCM (CMGameOver _) -> ()
             | RCM a -> failwith (sprintf "not implmented: %A" a)
             | RGPE err -> printfn "Gameplay Error:\n%A" err; aux st
@@ -304,5 +340,5 @@ module Scrabble =
         let dict = dictf false // Uncomment if using a trie for your dictionary
         let board = Parser.mkBoard boardP
         let handSet = List.fold (fun acc (x, k) -> MultiSet.add x k acc) MultiSet.empty hand
-        fun () -> playGame cstream tiles (State.mkState board Map.empty dict playerNumber playerTurn numPlayers handSet Map.empty Map.empty)
+        fun () -> playGame cstream tiles (State.mkState board Map.empty dict playerNumber playerTurn numPlayers handSet Map.empty tiles)
         

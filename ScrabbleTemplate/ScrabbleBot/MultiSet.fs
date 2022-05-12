@@ -11,7 +11,7 @@ module internal MultiSet
    let addSingle a (s : MultiSet<'a>) = s |> Map.add a ((numItems a s) + 1u)
    let remove a n (s : MultiSet<'a>) : MultiSet<'a> = 
        let value = numItems a s
-       if value >= n then Map.add a (value - n) s else Map.remove a s
+       if value > n then Map.add a (value - n) s else Map.remove a s
    let removeSingle a (s : MultiSet<'a>) = remove a 1u s
    let fold f acc (multiset : MultiSet<'b>) = Map.fold f acc multiset
    let foldBack f (multiset : MultiSet<'b>) acc = Map.foldBack f multiset acc
