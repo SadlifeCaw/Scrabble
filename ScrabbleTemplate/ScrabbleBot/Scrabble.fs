@@ -67,15 +67,6 @@ module State =
         | Right -> (x + 1, y)
         | Down -> (x, y + 1)
     
-    let previousCoord (x, y) dir =
-        match dir with
-        | Right -> (x - 1, y)
-        | Down -> (x, y - 1)
-    
-    let turn = function
-        | Right -> Down
-        | Down -> Right
-    
     //TODO RemovePiecesFromHand
 
     let mkState b pob d pn pt np h pp p =
@@ -122,7 +113,7 @@ module State =
     //TODO: idea: make a single UPDATE-STATE function instead of having many different methods
     let putPiecesOnBoard ms st =
         // Add every piece in the given multiset to the piecesOnBoard
-        let newBoard = ms |> List.fold (fun acc (coord,(id,(l,v))) -> Map.add coord l acc) (piecesOnBoard st)
+        let newBoard = ms |> List.fold (fun acc (coord,(_,(l,_))) -> Map.add coord l acc) (piecesOnBoard st)
         newBoard
         
     // Change current turn to next player
@@ -167,7 +158,7 @@ module State =
             if checkNeighbours st coord dir
             then best
             else
-                MultiSet.fold (fun best' id num ->
+                MultiSet.fold (fun best' id _ ->
                     let set = Map.find id st.pieces
                     Set.fold (fun acc (c, v) ->
                         match Dictionary.step c dict with
@@ -180,7 +171,7 @@ module State =
                                 else acc
                             let newHand = MultiSet.removeSingle id hand
                             
-                            if wordFinished then (newBestMove) else findWordFromCoord st (nextCoord coord dir) dir dict'' newHand newCurrent newBestMove
+                            if wordFinished then newBestMove else findWordFromCoord st (nextCoord coord dir) dir dict'' newHand newCurrent newBestMove
                             
                             //findWordFromCoord st (nextCoord coord dir) dir dict'' newHand newCurrent newBestMove
                                
@@ -211,8 +202,6 @@ module State =
             
 
 module Scrabble =
-    open System.Threading
-    
     let playGame cstream pieces (st : State.state) =
 
         let rec aux (st : State.state) =
@@ -241,7 +230,7 @@ module Scrabble =
 
             debugPrint (sprintf "Player %d -> Server:\n%A\n" (State.playerNumber st) move) // keep the debug lines. They are useful.
             
-            let ids = st.hand |> MultiSet.fold (fun acc id n -> id :: acc) []
+            let ids = st.hand |> MultiSet.fold (fun acc id _ -> id :: acc) []
             //List.fold (fun acc (id,n) -> MultiSet.add id n acc) oldHand
             
             if List.length move > 0
@@ -351,5 +340,4 @@ module Scrabble =
         let dict = dictf false // Uncomment if using a trie for your dictionary
         let board = Parser.mkBoard boardP
         let handSet = List.fold (fun acc (x, k) -> MultiSet.add x k acc) MultiSet.empty hand
-        fun () -> playGame cstream tiles (State.mkState board Map.empty dict playerNumber playerTurn numPlayers handSet Map.empty tiles)
-        
+        fun () -> playGame cstream tiles (State.mkState board Map.empty dict playerNumber playerTurn numPlayers handSet Map.empty tiles)    
