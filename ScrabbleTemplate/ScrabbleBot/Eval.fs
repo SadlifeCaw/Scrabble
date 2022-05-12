@@ -49,14 +49,12 @@ module internal Eval
     let isDigit c =
         c >>= fun x ->
             match x with
-            | int -> ret(true)
-            | _ -> ret(false)
+            | _ -> ret(true)
 
     let isLetter c =
         c >>= fun x ->
             match x with
-            | char -> ret(true)
-            | _ -> ret(false)
+            | _ -> ret(true)
 
     let isVowel c =
         c >>= fun x ->
