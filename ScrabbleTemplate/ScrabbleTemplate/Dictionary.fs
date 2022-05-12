@@ -38,5 +38,3 @@ module internal Dictionary =
         match Map.tryFind c child with
         | None -> None
         | Some (Node(child, word)) -> Some (word, Node(child, word))
-    
-    //TODO: MAKE THIS A TRIE INSTEAD
