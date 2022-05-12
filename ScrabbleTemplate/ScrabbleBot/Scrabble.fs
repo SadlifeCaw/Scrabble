@@ -143,6 +143,11 @@ module State =
         match dir with
         |Right -> if st.piecesOnBoard.ContainsKey(x, y+1) || st.piecesOnBoard.ContainsKey(x, y-1) then true else false
         |Down -> if st.piecesOnBoard.ContainsKey(x+1,y) || st.piecesOnBoard.ContainsKey(x-1, y) then true else false
+    
+    let canStartHere st (x,y) (dir: dir) =
+        match dir with
+        |Right -> if st.piecesOnBoard.ContainsKey(x-1, y) then false else true
+        |Down -> if st.piecesOnBoard.ContainsKey(x, y-1) then false else true
                 
     
     let rec findWordFromCoord (st: state) coord dir dict hand (current: move) (best: move) =
@@ -169,7 +174,7 @@ module State =
                         |None -> acc
                         |Some (wordFinished, dict'') ->                                
                             let newCurrent = (coord, (id, (c,v))) :: current
-                            let newBestMove = if wordFinished then chooseBest newCurrent acc else acc
+                            let newBestMove = if wordFinished && not(st.piecesOnBoard.ContainsKey(nextCoord coord dir)) then chooseBest newCurrent acc else acc
                             let newHand = MultiSet.removeSingle id hand
                             
                             if wordFinished then (newBestMove) else findWordFromCoord st (nextCoord coord dir) dir dict'' newHand newCurrent newBestMove
@@ -197,7 +202,10 @@ module State =
             // A good placed to start would be from each tile already placed on the board
             // And trying to form words in both directions
             // i.e. Map.fold (fun acc coord _ -> something) [] st.piecesOnBoard
-            findWordFromCoord st (0,0) Right st.dict st.hand [] []
+            let rightMove = Map.fold (fun acc coord _ -> if not(canStartHere st coord Right) then acc else chooseBest (findWordFromCoord st coord Right st.dict st.hand [] []) acc) [] st.piecesOnBoard
+            let downMove = Map.fold (fun acc coord _ -> if not(canStartHere st coord Down) then acc else chooseBest (findWordFromCoord st coord Down st.dict st.hand [] []) acc) [] st.piecesOnBoard
+            chooseBest rightMove downMove
+            
 
 module Scrabble =
     open System.Threading
